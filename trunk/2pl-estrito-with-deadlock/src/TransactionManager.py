@@ -3,7 +3,7 @@ import time
 class Transaction(object):
     
     def __init__(self, commands):
-        Thread.__init__(self):
+        Thread.__init__(self)
         self.id = hash(self)
         self.commands = commands
         

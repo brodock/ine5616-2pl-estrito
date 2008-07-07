@@ -1,6 +1,9 @@
 import time
+from threading import Thread
+from LockManager import LockManager
+from DataManager import DataManager
 
-class Transaction(object):
+class Transaction(Thread):
     
     def __init__(self, commands):
         Thread.__init__(self)
@@ -55,8 +58,8 @@ if __name__ == '__main__':
     LM = LockManager()
     DM = DataManager()
     tx1_cmd = [
-        ('read','Registro1', 'x'),
-        ('read','Registro2', 'y'),
+        ('read', 'Registro1', 'x'),
+        ('read', 'Registro2', 'y'),
         ('write', 'Registro1', 'x+y')]
     tx1 = Transaction(tx1_cmd)
     TM.append(tx1)

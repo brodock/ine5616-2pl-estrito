@@ -25,6 +25,7 @@ class TransactionManager(object):
                 # could not get lock, try again
                 self.append(transaction)
                 commit_ok = False
+                break
             else:
                 # got lock, execute command
                 getattr(DM, cmd[0])(cmd[1], cmd[2])

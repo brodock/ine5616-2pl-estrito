@@ -12,6 +12,7 @@ class Transaction(Thread):
         Thread.__init__(self)
         self.id = hash(self)
         self.commands = commands
+        print "[T%s] Transação iniciada!" % self.id
         
 
 class TransactionManager(object):
@@ -19,6 +20,7 @@ class TransactionManager(object):
     def __init__(self):
         self.queue = []
         self.running = True
+        print "TransactionManager carregado com sucesso!"
     
     def parse(self, transaction):
         '''Lock transaction commands and apply if successful, otherwise re-queue'''

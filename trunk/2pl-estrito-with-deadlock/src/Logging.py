@@ -32,6 +32,8 @@ class Log (Thread):
         while self.running:
             if self.DM.data_changed:
                 print '\nEstado atual dos dados:'
+                #k = chave
+                #v = valor
                 for k,v in self.DM.database.items():
                     print '%s = %s' % (k, v)
                 print ''

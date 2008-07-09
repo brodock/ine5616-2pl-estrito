@@ -42,7 +42,7 @@ class TransactionManager(Thread):
         self.log.write('start', transaction.id)
 
         if transaction.timeout:
-            time.sleep(self.swap_sleep)
+            time.sleep(self.swap_sleep + random.random())
             self.swap_sleep ^= 1
 
         locking_ok = True

@@ -107,7 +107,7 @@ class TransactionManager(Thread):
 
             # send command to DataManager for execution
             getattr(self.DM, action)(transaction, data_item, user_op)
-            self.log.write('%s(%s)' % (action, data_item), transaction.id)
+            self.log.write('%s(%s = %s)' % (action, data_item, self.DM.database[data_item]), transaction.id)
 
             if action == 'read':
                 # read locks can be released earlier

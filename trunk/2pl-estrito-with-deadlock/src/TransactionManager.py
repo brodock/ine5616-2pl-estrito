@@ -13,6 +13,7 @@ class Transaction(object):
         self.id = hash(self)
         self.commands = commands
         self.timestamp = time.time()
+        self.timeout = False
 
     def get_value(var, operation):
         exec('v = ' + operation)
@@ -24,7 +25,7 @@ class Transaction(object):
 
 class TransactionManager(Thread):
 
-    def __init__(self, LM, DM, log, timeout=3):
+    def __init__(self, LM, DM, log, timeout=2):
         Thread.__init__(self)
         self.queue = []
         self.log = log
@@ -32,12 +33,17 @@ class TransactionManager(Thread):
         self.DM = DM
         self.timeout = timeout
         self.running = True
+        self.swap_sleep = 0
         print 'TransactionManager loaded!'
 
     def schedule(self, transaction):
         '''Lock transaction commands and apply if successful, otherwise re-queue'''
         self.log.show('executando', transaction.id)
         self.log.write('start', transaction.id)
+
+        if transaction.timeout:
+            time.sleep(self.swap_sleep)
+            self.swap_sleep ^= 1
 
         locking_ok = True
 
@@ -67,7 +73,7 @@ class TransactionManager(Thread):
                 else:
                     # wait and try to get lock again
                     self.log.write('wait %s-lock(%s)' % (action, data_item), transaction.id)
-                    time.sleep(0.5)
+                time.sleep(0.5)
 
             if not lock_ok:
                 # locking failed on last command, timeout detected
@@ -85,6 +91,8 @@ class TransactionManager(Thread):
             # re-schedule transaction
             self.log.show('abortando', transaction.id)
             self.log.write('abort', transaction.id)
+            self.LM.unlock_all(transaction.id)
+            transaction.timeout = True
             self.append(transaction)
             return False
 
@@ -134,4 +142,4 @@ class TransactionManager(Thread):
             if tx:
                 tx.timestamp = time.time()
                 thread.start_new_thread(self.schedule, (tx,))
-            time.sleep(0.5 + random.randrange(1))
+            time.sleep(0.5)

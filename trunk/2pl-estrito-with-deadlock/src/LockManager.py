@@ -50,7 +50,7 @@ class LockManager(object):
                     self.exclusive_list(tx_id, data_item)
                     return True
                 else:
-                    self.log.show_lock(lock_msg + '(FALHA: Compartilhado com muitos)', tx_id, data_item)
+                    self.log.show_lock(lock_msg + '(FALHA: Compartilhando lock)', tx_id, data_item)
                     return False
             else:
                 self.log.show_lock(lock_msg + '(FALHA: Não possui lock)', tx_id, data_item)

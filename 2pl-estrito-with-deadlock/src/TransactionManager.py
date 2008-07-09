@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: UTF-8 -*-
+
 import time
 from threading import Thread
 from LockManager import LockManager
@@ -55,6 +58,7 @@ class TransactionManager(object):
             time.sleep(0.5)
             
 if __name__ == '__main__':
+    print "Iniciando aplicação de demonstração do 2pl estrito com tratamento de deadlock"
     TM = TransactionManager()
     LM = LockManager()
     DM = DataManager()

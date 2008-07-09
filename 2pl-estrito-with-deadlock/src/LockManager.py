@@ -109,7 +109,7 @@ class LockManager(object):
     def shared_unlock(self, tx_id, data_item):
         '''Remove one shared lock from a data item'''
         self.lock_table[data_item][tx_id]['S'] -= 1
-        if self.lock_table[data_item][tx_id]['S'] == 0:
+        if self.lock_table[data_item][tx_id]['S'] == 0 and self.lock_table[data_item][tx_id].has_key('X') and self.lock_table[data_item][tx_id]['X'] == 0:
             self.unlock(tx_id, data_item)
             
     def unlock(self, tx_id, data_item):

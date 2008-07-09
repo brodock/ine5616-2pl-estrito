@@ -3,8 +3,6 @@
 
 import time
 from threading import Thread
-from LockManager import LockManager
-from DataManager import DataManager
 
 class Transaction(Thread):
     
@@ -15,9 +13,10 @@ class Transaction(Thread):
         print "[T%s] Transação iniciada!" % self.id
         
 
-class TransactionManager(object):
+class TransactionManager(Thread):
     
     def __init__(self):
+        Thread.__init__(self)
         self.queue = []
         self.running = True
         self.tx_table = {}
@@ -28,28 +27,23 @@ class TransactionManager(object):
         commit_ok = True
         # get locks
         for cmd in transaction.commands:
+            # transaction line - "read", "registro1", "x"
             action = cmd[0]
             data_item = cmd[1]
-            LM.lock(transaction.id, action, data_item):
-                
-                # could not get lock, try again
-                self.append(transaction)
-                commit_ok = False
-                break
-            else:
-                # got lock, execute command
-                self.add_command(transaction.id, cmd)
-                getattr(DM, cmd[0])(transaction.id, cmd[1], cmd[2])
-        # done locking, proceeding to phase 2
+            LM.lock(transaction.id, action, data_item)
+            print "[T%s] conseguiu todos os locks" % transaction.id
+            # done locking, proceeding to phase 2
         # execute commands
         for cmd in transaction.commands:
             action = cmd[0]
             data_item = cmd[1]
-            
-            getattr(DM, action)(transaction.id, data_item, cmd[2])
-            if cmd[0] == 'read':
+            user_op = cmd[2]
+            # send command to DataManager
+            getattr(DM, action)(transaction.id, data_item, user_op)
+            if action == 'read':
                 # read locks can be released earlier
-                LM.unlock(transaction.id, cmd[2])
+                LM.unlock(transaction.id, data_item)
+        # 
         if commit_ok:
             DM.commit(transaction.id)
         else:
@@ -74,15 +68,3 @@ class TransactionManager(object):
             if tx:
                 self.parse(tx)
             time.sleep(0.5)
-            
-if __name__ == '__main__':
-    print "Iniciando aplicação de demonstração do 2pl estrito com tratamento de deadlock"
-    TM = TransactionManager()
-    LM = LockManager()
-    DM = DataManager()
-    tx1_cmd = [
-        ('read', 'Registro1', 'x'),
-        ('read', 'Registro2', 'y'),
-        ('write', 'Registro1', 'x+y')]
-    tx1 = Transaction(tx1_cmd)
-    TM.append(tx1)

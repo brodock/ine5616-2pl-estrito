@@ -1,14 +1,15 @@
 #!/usr/bin/env python
+# -*- coding: UTF-8 -*-
 
 class Database(object):
 
     def __init__(self):
         '''Initialize database'''
         self.database = {
-            'A':1000,
-            'B':2000,
-            'C':3000,
-            'D':4000}
+            'Registro1':1000,
+            'Registro2':2000,
+            'Registro3':3000,
+            'Registro4':4000}
     
     # sgbd functions
     def read(self, key):

@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: UTF-8 -*-
+
 class LockManager(object):
     
     def __init__(self):
@@ -62,6 +65,7 @@ class LockManager(object):
             
     def unlock(self, tx_id, data_item):
         '''Remove a transaction lock from a data item'''
+        print "Removendo lock da %s " % tx_id
         del(self.lock_table[data_item][tx_id])
         
     def unlock_all(self, tx_id):

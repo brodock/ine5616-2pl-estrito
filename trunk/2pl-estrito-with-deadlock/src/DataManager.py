@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 
-class DataManager():
+class DataManager(object):
     
     def __init__(self):
         # initialize database
@@ -11,20 +11,18 @@ class DataManager():
             'Registro3':3000,
             'Registro4':4000,
             'Registro5':2500}
-        print "DataManager carregado com sucesso!" 
+        print "DataManager carregado com sucesso!"
+        self.data_changed = False
     
     # sgbd functions
-    def read(self, tx_id, key, var):
+    def read(self, tx, key, var):
         '''Read a register from database'''
-        print "Fazendo leitura do registro %s (%s)" % (key, self.database[key])
-        return self.database[key]
+        print "[T%s] Fazendo leitura do registro %s (%s)" % (tx.id, key, self.database[key])
+        tx.set_value(var, self.database[key])
         
-    def write(self, key, value):
+    def write(self, tx, key, operation):
         '''Write a register to database'''
-        print "Escrevendo no registro %s = %s" % (key, value)
+        value = tx.get_value(operation)
+        print "[T%s] Escrevendo no registro %s = %s" % (tx.id, key, value)
         self.database[key] = value
-    
-    def parse(commands):
-        '''Parse all transaction commands'''
-        for cmd in commands:
-            exec(cmd)
+        self.data_changed = True

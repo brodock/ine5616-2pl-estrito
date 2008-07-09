@@ -2,8 +2,8 @@
 # -*- coding: UTF-8 -*-
 
 class DataManager(object):
-    
-    def __init__(self):
+
+    def __init__(self, log):
         # initialize database
         self.database = {
             'Registro1':1000,
@@ -11,18 +11,18 @@ class DataManager(object):
             'Registro3':3000,
             'Registro4':4000,
             'Registro5':2500}
-        print "DataManager loaded!"
+        self.log = log
         self.data_changed = False
-    
+
     # sgbd functions
     def read(self, tx, key, var):
         '''Read a register from database'''
-        print "[T%s] {%s} reading data: %s" % (tx.id, key, self.database[key])
+        self.log.show_data('reading data', tx.id, key, self.database[key])
         tx.set_value(var, self.database[key])
-        
+
     def write(self, tx, key, operation):
         '''Write a register to database'''
         value = tx.get_value(operation)
-        print "[T%s] {%s} writing data: %s" % (tx.id, key, value)
+        self.log.show_data('writing data', tx.id, key, value)
         self.database[key] = value
         self.data_changed = True

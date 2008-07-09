@@ -6,7 +6,7 @@ import time
 
 class LockManager(object):
 
-    def __init__(self):
+    def __init__(self, log):
         '''
         The lock table supports the following format:
         {reg: {Tx: {'S': n} } }
@@ -15,54 +15,55 @@ class LockManager(object):
 
         '''
         self.lock_table = {}
-        print "LockManager loaded!"
+        self.log = log
 
     def shared_lock(self, tx_id, data_item):
         '''Acquire shared lock (read) on a data item'''
         lock_type = self.check_lock(data_item)
         if lock_type == 'U':
             self.shared_list(tx_id, data_item)
-            print '[T%s] {%s}: Unlocked -> Shared Lock!' % (tx_id, data_item)
+            self.log.show_lock('Unlocked -> Shared Lock!', tx_id, data_item)
             return True
         elif lock_type == 'S':
             self.shared_list(tx_id, data_item)
-            print '[T%s] {%s}: Shared Lock -> Shared Lock!' % (tx_id, data_item)
+            self.log.show_lock('Shared Lock -> Shared Lock!', tx_id, data_item)
             return True
         else:
             # lock_type == 'X'
-            print '[T%s] {%s}: Exclusive Lock -> Shared Lock (FALHA)' % (tx_id, data_item)
+            self.log.show_lock('Exclusive Lock -> Shared Lock (FALHA)', tx_id, data_item)
             return False
 
     def exclusive_lock(self, tx_id, data_item):
         '''Acquire exclusive lock (write) on a data item'''
         lock_type = self.check_lock(data_item)
         if lock_type == 'U':
-            print '[T%s] {%s}: Unlock -> Exclusive Lock!' % (tx_id, data_item)
-            print self.list_modes(data_item)
+            self.log.show_lock('Unlocked -> Exclusive Lock!', tx_id, data_item)
             self.exclusive_list(tx_id, data_item)
             return True
         elif lock_type == 'S':
-            print '[T%s] {%s}: Shared Lock -> Exclusive Lock (TENTANDO)' % (tx_id, data_item)
+            lock_msg = 'Shared Lock -> Exclusive Lock '
+            self.log.show_lock(lock_msg + '(TENTANDO)', tx_id, data_item)
             if self.lock_table[data_item].has_key(tx_id):
                 if len(self.lock_table[data_item]) == 1:
                     # only we have shared lock on it, so upgrade is possible
-                    print '[T%s] {%s}: Shared Lock -> Exclusive Lock (CONSEGUIU)!' % (tx_id, data_item)
+                    self.log.show_lock(lock_msg + '(CONSEGUIU)!', tx_id, data_item)
                     self.exclusive_list(tx_id, data_item)
                     return True
                 else:
-                    print '[T%s] {%s}: Shared Lock -> Exclusive Lock (FALHA: Compartilhado com muitos)' % (tx_id, data_item)
+                    self.log.show_lock(lock_msg + '(FALHA: Compartilhado com muitos)', tx_id, data_item)
                     return False
             else:
-                print '[T%s] {%s} cannot upgrade lock (Holds no shares)' % (tx_id, data_item)
+                self.log.show_lock(lock_msg + '(FALHA: Não possui lock)', tx_id, data_item)
                 return False
         else:
             # lock_type == 'X'
+            lock_msg = 'Exclusive Lock -> Exclusive Lock '
             if self.lock_table[data_item].has_key(tx_id):
                 if len(self.lock_table[data_item]) == 1:
                     # we already have exclusive lock, so it's ok
-                    print '[T%s] {%s}: Exclusive Lock -> Exclusive Lock (transação já tinha lock exclusivo dos dados)' % (tx_id, data_item)
+                    self.log.show_lock(lock_msg + '(já possui lock exclusivo)', tx_id, data_item)
                     return True
-            print '[T%s] {%s}: Exclusive Lock -> Exclusive Lock (FALHA: Já existe outro ativo em outra transação)' % (tx_id, data_item)
+            self.log.show_lock(lock_msg + '(FALHA: Já existe outro ativo em outra transação)', tx_id, data_item)
             return False
 
     def shared_list(self, tx_id, data_item):
@@ -108,13 +109,14 @@ class LockManager(object):
 
     def shared_unlock(self, tx_id, data_item):
         '''Remove one shared lock from a data item'''
+        self.log.show_lock('removendo shared lock', tx_id, data_item)
         self.lock_table[data_item][tx_id]['S'] -= 1
-        if self.lock_table[data_item][tx_id]['S'] == 0 and self.lock_table[data_item][tx_id].has_key('X') and self.lock_table[data_item][tx_id]['X'] == 0:
+        if self.lock_table[data_item][tx_id]['S'] == 0:
             del(self.lock_table[data_item][tx_id]['S'])
 
     def unlock(self, tx_id, data_item):
         '''Remove a transaction lock from a data item'''
-        print "[T%s] {%s} removing lock (%s -> Unlocked)" % (tx_id, data_item, self.lock_table[data_item][tx_id])
+        self.log.show_lock('removendo locks', tx_id, data_item)
         del(self.lock_table[data_item][tx_id])
 
     def unlock_all(self, tx_id):

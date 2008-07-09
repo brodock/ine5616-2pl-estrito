@@ -15,54 +15,54 @@ class LockManager(object):
         
         '''
         self.lock_table = {}
-        print "LockManager carregado com sucesso!"
+        print "LockManager loaded!"
     
     def shared_lock(self, tx_id, data_item):
         '''Acquire shared lock (read) on a data item'''
         lock_type = self.check_lock(data_item)
         if lock_type == 'U':
             self.shared_list(tx_id, data_item)
-            print '[T%s] got shared lock on %s (was Unlocked)' % (tx_id, data_item)
+            print '[T%s] {%s}: Unlocked -> Shared Lock!' % (tx_id, data_item)
             return True
         elif lock_type == 'S':
             self.shared_list(tx_id, data_item)
-            print '[T%s] got shared lock on %s (was Shared)' % (tx_id, data_item)
+            print '[T%s] {%s}: Shared Lock -> Shared Lock!' % (tx_id, data_item)
             return True
         else:
             # lock_type == 'X'
-            print '[T%s] cannot get shared lock on %s (type X active)' % (tx_id, data_item)
+            print '[T%s] {%s}: Exclusive Lock -> Shared Lock (FALHA)' % (tx_id, data_item)
             return False
     
     def exclusive_lock(self, tx_id, data_item):
         '''Acquire exclusive lock (write) on a data item'''
         lock_type = self.check_lock(data_item)
         if lock_type == 'U':
-            print '[T%s] got exclusive lock on %s (was Unlocked)' % (tx_id, data_item)
+            print '[T%s] {%s}: Unlock -> Exclusive Lock!' % (tx_id, data_item)
             print self.list_modes(data_item)
             self.exclusive_list(tx_id, data_item)
             return True
         elif lock_type == 'S':
-            print '[T%s] trying exclusive lock on %s (is Shared)' % (tx_id, data_item)
+            print '[T%s] {%s}: Shared Lock -> Exclusive Lock (TENTANDO)' % (tx_id, data_item)
             if self.lock_table[data_item].has_key(tx_id):
                 if len(self.lock_table[data_item]) == 1:
                     # only we have shared lock on it, so upgrade is possible
-                    print '[T%s] upgrading shared lock to exclusive lock on %s' % (tx_id, data_item)
+                    print '[T%s] {%s}: Shared Lock -> Exclusive Lock (CONSEGUIU)!' % (tx_id, data_item)
                     self.exclusive_list(tx_id, data_item)
                     return True
                 else:
-                    print '[T%s] cannot upgrade lock on %s (Shared with many)' % (tx_id, data_item)
+                    print '[T%s] {%s}: Shared Lock -> Exclusive Lock (FALHA: Compartilhado com muitos)' % (tx_id, data_item)
                     return False
             else:
-                print '[T%s] cannot upgrade lock on %s (Holds no shares)' % (tx_id, data_item)
+                print '[T%s] {%s} cannot upgrade lock (Holds no shares)' % (tx_id, data_item)
                 return False
         else:
             # lock_type == 'X'
             if self.lock_table[data_item].has_key(tx_id):
                 if len(self.lock_table[data_item]) == 1:
                     # we already have exclusive lock, so it's ok
-                    print '[T%s] got exclusive lock on %s (already had X)' % (tx_id, data_item)
+                    print '[T%s] {%s}: Exclusive Lock -> Exclusive Lock (transação já tinha lock exclusivo dos dados)' % (tx_id, data_item)
                     return True
-            print '[T%s] cannot get exclusive lock on %s (other X active)' % (tx_id, data_item)
+            print '[T%s] {%s}: Exclusive Lock -> Exclusive Lock (FALHA: Já existe outro ativo em outra transação)' % (tx_id, data_item)
             return False
     
     def shared_list(self, tx_id, data_item):
@@ -114,7 +114,7 @@ class LockManager(object):
             
     def unlock(self, tx_id, data_item):
         '''Remove a transaction lock from a data item'''
-        print "Removendo lock da %s em %s" % (tx_id, data_item)
+        print "[T%s] {%s} removing lock (%s -> Unlocked)" % (tx_id, data_item, self.lock_table[data_item][tx_id])
         del(self.lock_table[data_item][tx_id])
         
     def unlock_all(self, tx_id):

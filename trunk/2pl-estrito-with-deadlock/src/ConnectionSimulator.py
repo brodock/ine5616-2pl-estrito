@@ -2,7 +2,6 @@
 # -*- coding: UTF-8 -*-
 
 import time
-from threading import Thread
 from TransactionManager import TransactionManager, Transaction
 from LockManager import LockManager
 from DataManager import DataManager
@@ -39,11 +38,10 @@ class ConnectionSimulator():
         ('write', 'Registro4', 'var.y + 99')]
         
         self.transactions.append(transaction_cmd)
-        print "ConnectionSimulator carregado com sucesso!"
+        print "ConnectionSimulator loaded!"
     
     def run(self):
         for t in self.transactions:
-                # starteia t
                 trans = Transaction(t)
                 TM.append(trans)
         while self.running:
@@ -60,7 +58,7 @@ class ConnectionSimulator():
             
                 
 if __name__ == '__main__':
-    print "Iniciando aplicação de demonstração do 2pl estrito com tratamento de deadlock"
+    print "Starting demonstration aplication to strict 2pl with deadlock solving"
     LM = LockManager()
     DM = DataManager()
     TM = TransactionManager(LM, DM)

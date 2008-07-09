@@ -30,7 +30,7 @@ class TransactionManager(Thread):
         self.timeout = timeout
         self.LM = LM
         self.DM = DM
-        print 'TransactionManager carregado com sucesso!'
+        print 'TransactionManager loaded!'
     
     def parse(self, transaction):
         '''Lock transaction commands and apply if successful, otherwise re-queue'''
@@ -64,11 +64,11 @@ class TransactionManager(Thread):
         if not locking_ok:
             # failed getting locks for transaction
             # re-schedule transaction
-            print "[T%s] abortando" % transaction.id
+            print "[T%s] aborting..." % transaction.id
             self.append(transaction)
             return False
 
-        print '[T%s] conseguiu todos os locks' % transaction.id
+        print "[T%s] I've got all the locks I need (Oh Yeah!)" % transaction.id
         # done locking, proceeding to phase 2
         # execute commands
         for cmd in transaction.commands:
@@ -105,7 +105,7 @@ class TransactionManager(Thread):
         while self.running:
             tx = self.next_tx()
             if tx:
-                print '[T%s] Executando' % tx.id
+                print '[T%s] executando' % tx.id
                 tx.timestamp = time.time()
                 thread.start_new_thread(self.parse, (tx,))
                 #self.parse(tx)

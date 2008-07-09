@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 
+import time
+
+
 class LockManager(object):
     
     def __init__(self):
@@ -16,15 +19,19 @@ class LockManager(object):
     
     def shared_lock(self, tx_id, data_item):
         '''Acquire shared lock (read) on a data item'''
-        lock_type = self.check_lock(data_item)
-        if lock_type == 'U':
-            self.shared_list(tx_id, data_item)
-        elif lock_type == 'S':
-            self.shared_list(tx_id, data_item)
-        else:
-            # lock_type == 'X'
-            return
-            wait() #TODO
+        start_time = time.time()
+        while time.time() - start_time < 20:
+            lock_type = self.check_lock(data_item)
+            if lock_type == 'U':
+                self.shared_list(tx_id, data_item)
+                return
+            elif lock_type == 'S':
+                self.shared_list(tx_id, data_item)
+                return
+            else:
+                # lock_type == 'X'
+                time.sleep(0.5)
+        #dar unlock aqui, nos locks que a transação conseguiu
     
     def exclusive_lock(self, tx_id, data_item):
         '''Acquire exclusive lock (write) on a data item'''
@@ -34,8 +41,8 @@ class LockManager(object):
         elif lock_type == 'S':
             if self.lock_table[data_item].has_key(tx_id):
                 if len(self.lock_table[data_item]) == 1:
-                # only we have shared lock on it, so upgrade is possible
-                self.exclusive_list(tx_id, data_item)
+                    # only we have shared lock on it, so upgrade is possible
+                    self.exclusive_list(tx_id, data_item)
             else:
                 return
                 wait() #TODO
@@ -75,9 +82,15 @@ class LockManager(object):
         modes = [locks[tx] for tx in locks]
         return modes
     
+    def shared_unlock(self, tx_id, data_item):
+        '''Remove one shared lock from a data item'''
+        self.lock_table[data_item][tx_id]['S'] -= 1
+        if self.lock_table[data_item][tx_id]['S'] == 0:
+            self.unlock(tx_id, data_item)
+    
     def unlock(self, tx_id, data_item):
         '''Remove a transaction lock from a data item'''
-        print "Removendo lock da %s " % tx_id
+        print "Removendo lock da %s em %s" % (tx_id, data_item)
         del(self.lock_table[data_item][tx_id])
         
     def unlock_all(self, tx_id):

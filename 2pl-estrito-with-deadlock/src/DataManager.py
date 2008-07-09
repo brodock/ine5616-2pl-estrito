@@ -14,7 +14,7 @@ class DataManager():
         print "DataManager carregado com sucesso!" 
     
     # sgbd functions
-    def read(self, key):
+    def read(self, tx_id, key, var):
         '''Read a register from database'''
         print "Fazendo leitura do registro %s (%s)" % (key, self.database[key])
         return self.database[key]

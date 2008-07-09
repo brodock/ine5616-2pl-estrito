@@ -20,20 +20,36 @@ class TransactionManager(object):
     def __init__(self):
         self.queue = []
         self.running = True
+        self.tx_table = {}
         print "TransactionManager carregado com sucesso!"
     
     def parse(self, transaction):
         '''Lock transaction commands and apply if successful, otherwise re-queue'''
         commit_ok = True
+        # get locks
         for cmd in transaction.commands:
-            if not LM.lock(transaction.id, cmd[1], cmd[0]):
+            action = cmd[0]
+            data_item = cmd[1]
+            LM.lock(transaction.id, action, data_item):
+                
                 # could not get lock, try again
                 self.append(transaction)
                 commit_ok = False
                 break
             else:
                 # got lock, execute command
-                getattr(DM, cmd[0])(cmd[1], cmd[2])
+                self.add_command(transaction.id, cmd)
+                getattr(DM, cmd[0])(transaction.id, cmd[1], cmd[2])
+        # done locking, proceeding to phase 2
+        # execute commands
+        for cmd in transaction.commands:
+            action = cmd[0]
+            data_item = cmd[1]
+            
+            getattr(DM, action)(transaction.id, data_item, cmd[2])
+            if cmd[0] == 'read':
+                # read locks can be released earlier
+                LM.unlock(transaction.id, cmd[2])
         if commit_ok:
             DM.commit(transaction.id)
         else:

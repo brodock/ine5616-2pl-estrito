@@ -42,7 +42,7 @@ class TransactionManager(Thread):
             getattr(DM, action)(transaction.id, data_item, user_op)
             if action == 'read':
                 # read locks can be released earlier
-                LM.unlock(transaction.id, data_item)
+                LM.shared_unlock(transaction.id, data_item)
         # 
         if commit_ok:
             DM.commit(transaction.id)
